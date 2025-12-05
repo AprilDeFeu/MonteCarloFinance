@@ -1,3 +1,40 @@
+Metadata-Version: 2.4
+Name: monte-carlo-finance
+Version: 0.1.0
+Summary: Monte Carlo simulation framework for financial markets, including shockwave events and panic modeling
+Author-email: April <april@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/AprilDeFeu/MonteCarloFinance
+Project-URL: Bug Tracker, https://github.com/AprilDeFeu/MonteCarloFinance/issues
+Keywords: monte-carlo,finance,simulation,bonds,markets,risk-management,stress-testing
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Financial and Insurance Industry
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Office/Business :: Financial
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=1.20.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+Provides-Extra: visualization
+Requires-Dist: matplotlib>=3.5.0; extra == "visualization"
+Requires-Dist: seaborn>=0.12.0; extra == "visualization"
+Dynamic: license-file
+
 # MonteCarloFinance
 
 A comprehensive Monte Carlo simulation framework for financial markets, designed to model market dynamics, bond behavior, shockwave events, and market panic scenarios.
