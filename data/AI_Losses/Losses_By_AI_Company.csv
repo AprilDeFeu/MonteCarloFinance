@@ -1,0 +1,12 @@
+Company,Time Period,Metric,Value,Unit,Context/Notes,Source Citation
+OpenAI,Q1 FY2026 (MSFT Reported),Microsoft Share of Loss,3.1,USD Billion,Loss impact recognized by Microsoft (approx. 27% stake),
+OpenAI,Q3 2025 (Estimated),Total Net Loss,11.5,USD Billion,Estimated total quarterly loss extrapolated from MSFT's share,
+OpenAI,FY 2024,Total Net Loss,~5.0,USD Billion,Estimated annual loss,
+OpenAI,FY 2025 (Projected),Operating Loss,>8.0,USD Billion,Projected loss due to compute/infrastructure costs,
+OpenAI,FY 2025 (Projected),Cash Burn,~9.0,USD Billion,Projected cash burn against ~$13B revenue,
+Anthropic,FY 2024,Total Net Loss,~5.3,USD Billion,Estimated spend to generate ~$1B revenue,
+Anthropic,FY 2025 (Projected),Cash Burn,~3.0,USD Billion,Projected burn against ~$4.2B revenue (lower than OpenAI),
+xAI,FY 2025 (Projected),Total Net Loss,~13.0,USD Billion,Projected loss against ~$500M revenue,
+xAI,Current (Late 2025),Monthly Burn Rate,~1.0,USD Billion,Primary cost driver is infrastructure (Colossus cluster),
+Google DeepMind,FY 2024,Operating Income,217,GBP Million,Reported profit (likely due to internal transfer pricing to Alphabet),
+Mistral AI,FY 2024,Revenue (Proxy for Scale),~30,USD Million,Losses not disclosed but noted as "high investment" vs revenue,

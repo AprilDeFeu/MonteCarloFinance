@@ -1,0 +1,72 @@
+MARKET IMPACT ASSESSMENT: STABLECOIN RESERVE REQUIREMENTS & CMBS LIQUIDATION
+TARGET DATE: January 17, 2025
+SUBJECT: Quantitative Analysis of "High-Quality Liquid Asset" (HQLA) Rotation
+
+1. EXECUTIVE SUMMARY
+
+ This document outlines the methodology to quantify the market effects of new regulations requiring stablecoin issuers to hold 1:1 reserves in HQLA (Treasury bills/notes with maturity <= 93 days) and banning Commercial Mortgage-Backed Securities (CMBS). 
+ 
+ The analysis focuses on the liquidity bifurcation between the U.S. Treasury market (absorption of capital) and the Office CMBS market (forced liquidation), using One Market Plaza (OMP) as the primary distress proxy.
+
+2. PHASE I: QUANTIFYING THE "FORCED REBALANCING" VOLUME
+
+ The first step isolates the volume of non-compliant assets ($Q_{Liquidate}$) currently held by major issuers (e.g., Tether, Circle) that must be rotated into T-Bills ($Q_{Buy}$).
+
+ Data Sources: Issuer Transparency Reports (Secured Loans/Other Investments buckets).
+
+ Equations:
+ The total capital to be liquidated is defined as:
+ $$Q_{Liquidate} = \sum (\text{Corporate Bonds} + \text{Secured Loans} + \text{CMBS} + \text{Crypto Assets})$$
+
+ Consequently, the buying pressure on the T-Bill market is:
+ $$Q_{Buy} = Q_{Liquidate}$$
+
+ *Note: As of late 2025, non-HQLA "Secured Loans" are estimated at ~$14.6B for major issuers. This serves as the baseline for $Q_{Liquidate}$.*
+
+3. PHASE II: IMPACT ON ONE MARKET PLAZA (CMBS PROXY)
+
+ Analysis of the specific debt regarding One Market Plaza (Ticker: OMP 2017-1MKT). We model two scenarios: Direct Liquidation and Sector Contagion.
+
+ A. Scenario A: Direct Liquidation Impact
+ If stablecoins hold OMP debt directly, we calculate the price slippage based on the bond's illiquidity.
+ 
+ Equation (Market Impact Cost):
+ $$\text{Market Impact Cost} = \alpha \times \sigma \times \sqrt{\frac{H_{OMP}}{ADV}}$$
+ 
+ Where:
+ - $\alpha$ = Liquidity coefficient (specific to distressed Office CMBS).
+ - $\sigma$ = Asset volatility (derived from current delinquency trends).
+ - $H_{OMP}$ = Holding size of the OMP bond to be sold.
+ - $ADV$ = Average Daily Volume of the bond.
+
+ B. Scenario B: Sector Contagion & Valuation (Cap Rate Expansion)
+ If issuers dump general "Secured Loans," spreads for the entire Office sector widen. We model the impact on OMP's valuation by adjusting the Capitalization Rate (Cap Rate) to reflect this risk premium.
+ 
+ Equation (Valuation Adjustment):
+ $$\Delta \text{Property Value} = \frac{\text{NOI}}{\text{Cap Rate} + \Delta \text{Spread}}$$
+
+ Where:
+ - $NOI$ = Net Operating Income of One Market Plaza.
+ - $\Delta \text{Spread}$ = The basis point widening caused by the forced sell-off (estimated +10 to +25 bps per $1B sold).
+
+ *Context: Current Office delinquency rates are at an all-time high of 11.66%, increasing the sensitivity of $\sigma$ in these equations.*
+
+4. PHASE III: IMPACT ON THE BOND MARKET (TREASURIES <= 93 DAYS)
+
+ We assess the capacity of the T-Bill market to absorb the capital rotation ($Q_{Buy}$).
+
+ Equation (Absorption Ratio):
+ $$\text{Impact} = \frac{\text{Stablecoin Demand}}{\text{T-Bill Float}}$$
+
+ Assessment:
+ With the T-Bill market valued >$6 Trillion, a rotation of ~$15B represents nominal demand (~0.25%).
+ Result: Anticipated yield compression of 0.5 to 1 basis point.
+
+5. PHASE IV: NET LIQUIDITY DIVERGENCE
+
+ The final output is a measure of spread divergence leading up to the January 17th deadline.
+
+ - CMBS/Secured Loans: High Supply / Low Demand -> Price Crash / Yield Spike (+150bps).
+ - T-Bills (<93 Days): High Demand / High Supply -> Price Stable / Yield Stable (-1bps).
+
+ Conclusion: The regulation creates a liquidity trap for holders of specific office debt (like OMP) while having a negligible impact on the broader efficiency of the government bond market.

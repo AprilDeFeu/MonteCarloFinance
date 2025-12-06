@@ -19,9 +19,17 @@ class TestSimulationResults:
             bond_yields=np.random.rand(10, 101) * 0.05 + 0.03,
             panic_levels=np.random.rand(10, 101) * 0.5,
             fear_greed_index=np.random.rand(10, 101) * 100,
+            liquidity_paths=np.random.rand(10, 101) * 0.5 + 0.8,
+            pgre_cash_paths=np.random.rand(10, 101) * 100 + 200,
+            pgre_ncf_paths=np.random.rand(10, 101) * 50 + 50,
+            consumer_wage_paths=np.random.rand(10, 101) * 100 + 100,
+            consumer_col_paths=np.random.rand(10, 101) * 100 + 100,
+            consumer_debt_paths=np.random.rand(10, 101) * 10,
+            consumer_default_prob_paths=np.random.rand(10, 101) * 0.01,
             shockwave_events=[[] for _ in range(10)],
             selloff_events=[[] for _ in range(10)],
             defaults=np.zeros(10, dtype=bool),
+            pgre_defaults=np.zeros(10, dtype=bool),
         )
 
         results.calculate_statistics()
@@ -30,6 +38,7 @@ class TestSimulationResults:
         assert "bond_price_final" in results.statistics
         assert "default_rate" in results.statistics
         assert "mean" in results.statistics["market_final"]
+        assert "consumer_wage_final" in results.statistics
 
     def test_get_percentile_paths(self):
         """Test percentile path calculation."""
@@ -39,9 +48,17 @@ class TestSimulationResults:
             bond_yields=np.random.rand(100, 51) * 0.05 + 0.03,
             panic_levels=np.random.rand(100, 51) * 0.5,
             fear_greed_index=np.random.rand(100, 51) * 100,
+            liquidity_paths=np.random.rand(100, 51) * 0.5 + 0.8,
+            pgre_cash_paths=np.random.rand(100, 51) * 100 + 200,
+            pgre_ncf_paths=np.random.rand(100, 51) * 50 + 50,
+            consumer_wage_paths=np.random.rand(100, 51) * 100 + 100,
+            consumer_col_paths=np.random.rand(100, 51) * 100 + 100,
+            consumer_debt_paths=np.random.rand(100, 51) * 10,
+            consumer_default_prob_paths=np.random.rand(100, 51) * 0.01,
             shockwave_events=[[] for _ in range(100)],
             selloff_events=[[] for _ in range(100)],
             defaults=np.zeros(100, dtype=bool),
+            pgre_defaults=np.zeros(100, dtype=bool),
         )
 
         percentiles = results.get_percentile_paths()

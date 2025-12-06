@@ -138,7 +138,12 @@ class PanicModel:
         adverse_impact += external_fear
 
         # Apply sensitivity
-        panic_increase = adverse_impact * self.config.panic_sensitivity
+        # Fragility factor amplifies the sensitivity
+        sensitivity = self.config.panic_sensitivity
+        if hasattr(self.config, 'fragility_factor'):
+             sensitivity *= self.config.fragility_factor
+        
+        panic_increase = adverse_impact * sensitivity
 
         # Herd behavior amplification when panic is high
         if self.is_panicking:

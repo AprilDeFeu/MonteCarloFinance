@@ -7,7 +7,8 @@ can trigger a chain reaction affecting bond yields and causing automated selloff
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Dict
+from datetime import datetime
 
 from monte_carlo_finance.core.config import ShockwaveConfig
 from monte_carlo_finance.utils.random import RandomGenerator
@@ -21,6 +22,11 @@ class ShockType(Enum):
     GEOPOLITICAL = "geopolitical"  # Geopolitical event
     MARKET_CRASH = "market_crash"  # General market crash
     SECTOR_SPECIFIC = "sector_specific"  # Sector-specific shock
+    NARRATIVE_COLLAPSE = "narrative_collapse"  # AI/Tech narrative failure
+    CONSUMER_CREDIT_FAILURE = "consumer_credit_failure"  # BNPL/Consumer debt trap
+    MANAGEMENT_FAILURE = "management_failure"  # Founder Mode collapse/Scandal
+    SMART_MONEY_EXIT = "smart_money_exit"  # Insulated elites exit before crash
+    MATURITY_WALL = "maturity_wall"  # Debt maturity spike (2025-2027)
     CUSTOM = "custom"  # User-defined shock
 
 
@@ -173,7 +179,14 @@ class ShockwaveTrigger:
         market_return: float,
         bond_yield: float,
         yield_change: float,
-        panic_level: float = 0.0
+        panic_level: float = 0.0,
+        narrative_premium: float = 0.0,
+        consumer_default_prob: float = 0.0,
+        liquidity_level: float = 1.0,
+        zirp_dependency: float = 0.0,
+        insulation_factor: float = 0.0,
+        current_date: Optional[datetime] = None,
+        maturity_walls: Optional[Dict[int, float]] = None
     ) -> List[ShockwaveEvent]:
         """Check all triggers and generate events.
 
@@ -183,6 +196,13 @@ class ShockwaveTrigger:
             bond_yield: Current bond yield
             yield_change: Recent yield change
             panic_level: Current panic level (0-1)
+            narrative_premium: Portion of market value driven by narrative (0-1)
+            consumer_default_prob: Probability of consumer default (0-1)
+            liquidity_level: Current global liquidity level (1.0 = neutral)
+            zirp_dependency: Asset dependency on ZIRP (0-1)
+            insulation_factor: Degree of smart money insulation/exit readiness (0-1)
+            current_date: Current simulation date
+            maturity_walls: Dictionary mapping year to wall intensity (0-1)
 
         Returns:
             List of newly triggered events
@@ -191,6 +211,90 @@ class ShockwaveTrigger:
 
         # Track cumulative yield change
         self._cumulative_yield_change += yield_change
+
+        # Maturity Wall Trigger (2025, 2026, 2027)
+        # Checks if we are in a maturity wall year and triggers stress events
+        if current_date and maturity_walls:
+            year = current_date.year
+            if year in maturity_walls:
+                intensity = maturity_walls[year]
+                if intensity > 0:
+                    # Check if we already have an active maturity wall shock
+                    has_active_wall_shock = any(
+                        e.shock_type == ShockType.MATURITY_WALL and e.is_active 
+                        for e in self._active_events
+                    )
+                    
+                    if not has_active_wall_shock:
+                        # Base probability for a "Credit Event" during the wall year
+                        # Scaled by intensity and current bond yield (higher yield = harder to refinance)
+                        # Reduced probability to avoid constant crashing
+                        wall_prob = 0.001 * intensity * (1 + bond_yield * 10)
+                        
+                        if self.rng.uniform() < wall_prob:
+                            event = ShockwaveEvent(
+                                shock_type=ShockType.MATURITY_WALL,
+                                timestamp=self._current_step,
+                                yield_impact=0.02 * intensity,  # 2% yield spike scaled by intensity
+                                market_impact=0.10 * intensity,  # 10% market drop scaled by intensity
+                                duration=20,  # Lasts a while (refinancing struggle)
+                                propagation_factor=self.config.cascade_decay,
+                                name=f"Maturity Wall Stress ({year})"
+                            )
+                            new_events.append(event)
+
+        # Smart Money Exit Trigger (The "Rug Pull")
+        # Triggered when insiders are insulated and retail is buying the narrative
+        # This is the "Exit Strategy" economy in action
+        if insulation_factor > 0.6 and narrative_premium > 0.2:
+             # Check if we already have an active exit shock
+            has_active_exit_shock = any(
+                e.shock_type == ShockType.SMART_MONEY_EXIT and e.is_active 
+                for e in self._active_events
+            )
+            
+            # Probability increases with the "gap" between smart money readiness and retail hype
+            # If insulation is high and narrative is high, the incentive to dump is max
+            # Reduced multiplier to make it a risk, not a certainty
+            exit_prob = 0.05 * (insulation_factor * narrative_premium) * 0.1 
+            
+            if not has_active_exit_shock and self.rng.uniform() < exit_prob:
+                event = ShockwaveEvent(
+                    shock_type=ShockType.SMART_MONEY_EXIT,
+                    timestamp=self._current_step,
+                    yield_impact=0.005,  # 0.5% yield spike (liquidity withdrawal)
+                    market_impact=0.15 * insulation_factor,  # Drop scaled by how much smart money leaves
+                    duration=5,
+                    propagation_factor=self.config.cascade_decay * 1.2, # Fast propagation
+                    name=f"Smart Money Exit (Insulated Selloff)"
+                )
+                new_events.append(event)
+
+        # Management Failure Trigger (Founder Mode Collapse)
+        # Triggered when liquidity dries up for ZIRP-dependent assets
+        # This represents the "naked swimmer" moment
+        if liquidity_level < 0.8 and zirp_dependency > 0.6:
+             # Check if we already have an active management shock
+            has_active_mgmt_shock = any(
+                e.shock_type == ShockType.MANAGEMENT_FAILURE and e.is_active 
+                for e in self._active_events
+            )
+            
+            # Probability increases as liquidity drops further
+            # Reduced multiplier
+            collapse_prob = 0.1 * (0.8 - liquidity_level) * 1.0  # e.g. at 0.7 liquidity -> 1% chance
+            
+            if not has_active_mgmt_shock and self.rng.uniform() < collapse_prob:
+                event = ShockwaveEvent(
+                    shock_type=ShockType.MANAGEMENT_FAILURE,
+                    timestamp=self._current_step,
+                    yield_impact=0.01,  # 1% yield spike (credit doubt)
+                    market_impact=0.25 * zirp_dependency,  # 25% drop scaled by dependency
+                    duration=8,
+                    propagation_factor=self.config.cascade_decay,
+                    name=f"Management Failure (ZIRP Withdrawal)"
+                )
+                new_events.append(event)
 
         # Random shock based on base probability
         # Probability increases with panic level
@@ -207,6 +311,24 @@ class ShockwaveTrigger:
                 name=f"Random shock at step {self._current_step}"
             )
             new_events.append(event)
+
+        # Narrative collapse trigger (AI bubble burst)
+        # Triggered by high panic or random chance if premium exists
+        if narrative_premium > 0:
+            # Probability increases with panic
+            narrative_prob = self.config.base_probability * 0.5 * (1 + panic_level * 2)
+            
+            if self.rng.uniform() < narrative_prob:
+                event = ShockwaveEvent(
+                    shock_type=ShockType.NARRATIVE_COLLAPSE,
+                    timestamp=self._current_step,
+                    yield_impact=self.config.yield_impact * 0.5,
+                    market_impact=narrative_premium, # Wipe out the premium
+                    duration=10, # Long lasting effect
+                    propagation_factor=self.config.cascade_decay,
+                    name=f"Narrative collapse (AI Shield broken)"
+                )
+                new_events.append(event)
 
         # Large negative return trigger
         if market_return < -0.05:  # 5% drop
@@ -258,6 +380,28 @@ class ShockwaveTrigger:
             )
             new_events.append(event)
 
+        # Consumer Cliff Trigger (The "Everything Bubble" Burst)
+        # If consumer default probability exceeds threshold (e.g. 5%), trigger a crash
+        # This represents the "Rationality Return" where the consumer can no longer support the asset prices
+        if consumer_default_prob > 0.05:
+            # Check if we already have an active consumer shock to avoid duplicate triggers every step
+            has_active_consumer_shock = any(
+                e.shock_type == ShockType.CONSUMER_CREDIT_FAILURE and e.is_active 
+                for e in self._active_events
+            )
+            
+            if not has_active_consumer_shock:
+                event = ShockwaveEvent(
+                    shock_type=ShockType.CONSUMER_CREDIT_FAILURE,
+                    timestamp=self._current_step,
+                    yield_impact=0.015,  # 1.5% yield spike (credit crunch)
+                    market_impact=self.config.market_impact * 2.5,  # Major crash (2.5x normal shock)
+                    duration=20,  # Long lasting recession
+                    propagation_factor=self.config.cascade_decay,
+                    name=f"Consumer Cliff Collapse (Default Prob: {consumer_default_prob:.1%})"
+                )
+                new_events.append(event)
+
         # Custom triggers
         state = {
             "market_value": market_value,
@@ -266,6 +410,7 @@ class ShockwaveTrigger:
             "yield_change": yield_change,
             "panic_level": panic_level,
             "step": self._current_step,
+            "consumer_default_prob": consumer_default_prob,
         }
 
         for trigger_func in self._custom_triggers:

@@ -12,7 +12,10 @@ monte_carlo_finance/core/config.py
 monte_carlo_finance/core/simulation.py
 monte_carlo_finance/models/__init__.py
 monte_carlo_finance/models/bond.py
+monte_carlo_finance/models/consumer.py
+monte_carlo_finance/models/liquidity.py
 monte_carlo_finance/models/market.py
+monte_carlo_finance/models/pgre.py
 monte_carlo_finance/triggers/__init__.py
 monte_carlo_finance/triggers/panic.py
 monte_carlo_finance/triggers/shockwave.py
@@ -21,6 +24,7 @@ monte_carlo_finance/utils/random.py
 monte_carlo_finance/utils/statistics.py
 tests/test_bond.py
 tests/test_config.py
+tests/test_consumer.py
 tests/test_market.py
 tests/test_panic.py
 tests/test_shockwave.py

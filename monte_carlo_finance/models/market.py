@@ -70,11 +70,16 @@ class MarketModel:
         self._volatility_modifier = volatility_modifier
         self._drift_modifier = drift_modifier
 
-    def step(self, dt: float, shock_impact: float = 0.0) -> float:
+    def step(
+        self,
+        dt: float,
+        shock_impact: float = 0.0,
+        liquidity_return: float = 0.0
+    ) -> float:
         """Advance the market by one time step.
 
         Uses the jump-diffusion model:
-        dS = (mu - lambda*k)S*dt + sigma*S*dW + S*dJ
+        dS = (mu - lambda*k)S*dt + sigma*S*dW + S*dJ + beta*S*dL/L
 
         where:
         - mu is drift
@@ -83,27 +88,65 @@ class MarketModel:
         - k is expected jump size
         - dW is Wiener process increment
         - dJ is jump process
+        - dL/L is liquidity return
 
         Args:
             dt: Time step in years
             shock_impact: External shock impact (multiplicative, e.g., 0.1 = 10% drop)
+            liquidity_return: Percentage change in global liquidity
 
         Returns:
             New market value
         """
         S = self._current_value
 
+        # Founder Mode & Moral Hazard Logic
+        # Founder Mode increases volatility (impulsiveness)
+        # Moral Hazard increases volatility (risk-taking)
+        founder_impact = self.config.founder_mode_intensity
+        moral_hazard = self.config.moral_hazard_factor
+        
+        # PE Dominance Logic (Asset Stripping)
+        # PE increases drift (short-term efficiency) but increases volatility (leverage)
+        pe_impact = self.config.pe_dominance
+        
+        # Base volatility multiplier from behavioral factors
+        behavioral_vol_multiplier = 1.0 + founder_impact + (0.5 * moral_hazard) + (0.3 * pe_impact)
+
         # Apply modifiers
-        sigma = self.config.volatility * self._volatility_modifier
-        mu = self.config.drift + self._drift_modifier
+        sigma = self.config.volatility * self._volatility_modifier * behavioral_vol_multiplier
+        
+        # PE boosts drift (short term extraction)
+        pe_drift_boost = 0.02 * pe_impact # Up to 2% extra drift
+        mu = self.config.drift + self._drift_modifier + pe_drift_boost
 
         # GBM component
         drift_term = (mu - 0.5 * sigma**2) * dt
         diffusion_term = sigma * np.sqrt(dt) * self.rng.normal()
 
+        # Liquidity component (The "Everything Bubble" factor)
+        # If beta > 1, market amplifies liquidity moves
+        liquidity_term = self.config.liquidity_beta * liquidity_return
+
         # Jump component (compound Poisson process)
         jump_term = 0.0
-        num_jumps = self.rng.poisson(self.config.jump_intensity * dt)
+        # PE increases jump intensity (bankruptcy risk)
+        effective_jump_intensity = self.config.jump_intensity * (1.0 + pe_impact)
+
+        # Ising Model Phase Transition Logic
+        # High Coupling (J) + Low Volatility (T) = High Probability of Spontaneous Symmetry Breaking (Crash)
+        # We model this as an amplifier to jump intensity
+        ising_coupling = self.config.market_coupling_strength
+        if ising_coupling > 0:
+            # "Temperature" is volatility. Lower T = Higher Criticality.
+            # We normalize T around 0.20 (20% vol).
+            temperature = max(0.05, sigma) # Floor at 5% to prevent division by zero
+            criticality = ising_coupling / temperature
+            # Exponential amplification of jump risk
+            ising_multiplier = np.exp(criticality * 0.1) # Scaling factor
+            effective_jump_intensity *= ising_multiplier
+
+        num_jumps = self.rng.poisson(effective_jump_intensity * dt)
 
         if num_jumps > 0:
             # Generate jump sizes
@@ -120,7 +163,7 @@ class MarketModel:
             shock_term = -shock_impact  # Negative impact on price
 
         # Update value (log-normal evolution)
-        log_return = drift_term + diffusion_term + jump_term + shock_term
+        log_return = drift_term + diffusion_term + jump_term + shock_term + liquidity_term
         new_value = S * np.exp(log_return)
 
         # Ensure non-negative
@@ -135,7 +178,8 @@ class MarketModel:
         self,
         num_steps: int,
         dt: float,
-        shock_schedule: Optional[np.ndarray] = None
+        shock_schedule: Optional[np.ndarray] = None,
+        liquidity_returns: Optional[np.ndarray] = None
     ) -> np.ndarray:
         """Simulate a full path of market values.
 
@@ -143,6 +187,7 @@ class MarketModel:
             num_steps: Number of time steps
             dt: Time step size in years
             shock_schedule: Array of shock impacts for each time step
+            liquidity_returns: Array of liquidity returns for each time step
 
         Returns:
             Array of market values (length num_steps + 1)
@@ -151,10 +196,14 @@ class MarketModel:
 
         if shock_schedule is None:
             shock_schedule = np.zeros(num_steps)
+            
+        if liquidity_returns is None:
+            liquidity_returns = np.zeros(num_steps)
 
         for i in range(num_steps):
             shock = shock_schedule[i] if i < len(shock_schedule) else 0.0
-            self.step(dt, shock)
+            liq_ret = liquidity_returns[i] if i < len(liquidity_returns) else 0.0
+            self.step(dt, shock, liq_ret)
 
         return self.history
 
