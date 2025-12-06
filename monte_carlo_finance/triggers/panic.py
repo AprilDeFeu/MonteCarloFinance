@@ -140,8 +140,7 @@ class PanicModel:
         # Apply sensitivity
         # Fragility factor amplifies the sensitivity
         sensitivity = self.config.panic_sensitivity
-        if hasattr(self.config, 'fragility_factor'):
-             sensitivity *= self.config.fragility_factor
+        sensitivity *= getattr(self.config, 'fragility_factor', 1.0)
         
         panic_increase = adverse_impact * sensitivity
 

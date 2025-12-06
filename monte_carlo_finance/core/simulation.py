@@ -17,7 +17,7 @@ from monte_carlo_finance.models.bond import BondModel
 from monte_carlo_finance.models.market import MarketModel
 from monte_carlo_finance.models.liquidity import LiquidityModel
 from monte_carlo_finance.models.consumer import ConsumerModel
-from monte_carlo_finance.models.pgre import PGREModel, PGREState
+from monte_carlo_finance.models.pgre import PGREModel
 from monte_carlo_finance.triggers.panic import FearGreedIndex, PanicModel
 from monte_carlo_finance.triggers.shockwave import ShockwaveEvent, ShockwaveTrigger
 from monte_carlo_finance.utils.random import RandomGenerator
@@ -260,7 +260,6 @@ class MonteCarloSimulation:
 
         prev_market_value = self._market_model.current_value
         prev_yield = self._bond_model.current_yield
-        prev_liquidity_level = self._liquidity_model.current_level
 
         events = []
         selloffs = []

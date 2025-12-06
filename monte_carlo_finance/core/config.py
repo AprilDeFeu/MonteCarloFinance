@@ -142,6 +142,7 @@ class ShockwaveConfig:
         cascade_decay: Decay factor for cascade propagation (0-1)
         selloff_threshold: Yield increase threshold that triggers automated selloffs
         selloff_intensity: Intensity of automated selloff (fraction of position sold)
+        consumer_default_threshold: Consumer default probability threshold for triggering crash
     """
     base_probability: float = 0.01  # 1% chance per time step
     yield_impact: float = 0.02  # 2% yield increase on shock
@@ -150,6 +151,7 @@ class ShockwaveConfig:
     cascade_decay: float = 0.7  # 70% decay per propagation step
     selloff_threshold: float = 0.05  # 5% yield increase triggers selloff
     selloff_intensity: float = 0.20  # Sell 20% of position
+    consumer_default_threshold: float = 0.05  # 5% consumer default probability triggers crash
 
 
 @dataclass

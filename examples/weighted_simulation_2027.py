@@ -13,7 +13,7 @@ import os
 import sys
 import json
 import logging
-from datetime import datetime, date
+from datetime import date
 
 import numpy as np
 from scipy import stats as sp_stats
@@ -132,7 +132,6 @@ def _log_validation_metrics(logger, name: str, data: np.ndarray, bands: dict,
         
         # Linear fit residuals
         y_linear_pred = float(intercept) + float(slope) * x
-        ss_res_linear = np.sum((y - y_linear_pred) ** 2)
         ss_tot = np.sum((y - np.mean(y)) ** 2)
         
         # Quadratic fit (ax² + bx + c)

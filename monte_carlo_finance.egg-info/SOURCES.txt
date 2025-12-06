@@ -25,6 +25,8 @@ monte_carlo_finance/utils/statistics.py
 tests/test_bond.py
 tests/test_config.py
 tests/test_consumer.py
+tests/test_consumer_cliff.py
+tests/test_founder_mode.py
 tests/test_market.py
 tests/test_panic.py
 tests/test_shockwave.py
