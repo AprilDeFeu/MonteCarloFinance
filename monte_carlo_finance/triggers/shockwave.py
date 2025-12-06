@@ -381,9 +381,10 @@ class ShockwaveTrigger:
             new_events.append(event)
 
         # Consumer Cliff Trigger (The "Everything Bubble" Burst)
-        # If consumer default probability exceeds threshold (e.g. 5%), trigger a crash
+        # If consumer default probability exceeds threshold, trigger a crash
         # This represents the "Rationality Return" where the consumer can no longer support the asset prices
-        if consumer_default_prob > 0.05:
+        consumer_threshold = getattr(self.config, 'consumer_default_threshold', 0.05)
+        if consumer_default_prob > consumer_threshold:
             # Check if we already have an active consumer shock to avoid duplicate triggers every step
             has_active_consumer_shock = any(
                 e.shock_type == ShockType.CONSUMER_CREDIT_FAILURE and e.is_active 

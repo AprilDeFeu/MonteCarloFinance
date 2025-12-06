@@ -37,269 +37,127 @@ Dynamic: license-file
 
 # MonteCarloFinance
 
-A comprehensive Monte Carlo simulation framework for financial markets, designed to model market dynamics, bond behavior, shockwave events, and market panic scenarios.
+## Overview
 
-## Features
+**MonteCarloFinance** is a high-fidelity stochastic simulation library designed to model complex financial market dynamics, credit risk, and macroeconomic interactions. Unlike traditional Black-Scholes models, this framework integrates behavioral economics, liquidity cycles, and discrete event triggers to simulate "fat-tailed" risks and systemic fragility.
 
-- **Market Value Simulation**: Geometric Brownian Motion (GBM) with jump diffusion for realistic market dynamics
-- **Bond Pricing Model**: Vasicek interest rate model with credit risk and default probability
-- **Shockwave Events**: Cascade effects where defaults trigger yield spikes and automated selloffs
-- **Market Panic Modeling**: Quantifiable and adjustable panic dynamics affecting volatility, drift, and correlations
-- **Highly Parameterizable**: All components can be configured for custom scenario modeling
-- **Stress Testing**: Built-in support for running multiple stress test scenarios
+The core engine employs a multi-agent approach where **Market**, **Bond**, **Consumer**, and **Liquidity** models interact dynamically, driven by a central **Monte Carlo** orchestrator.
 
-## Installation
+## Mathematical Framework
 
-```bash
-# Clone the repository
-git clone https://github.com/AprilDeFeu/MonteCarloFinance.git
-cd MonteCarloFinance
+The simulation is built upon a system of coupled Stochastic Differential Equations (SDEs) and discrete state transitions.
 
-# Install the package
-pip install -e .
+### 1. Market Dynamics (Jump-Diffusion with Regime Switching)
 
-# Or install with development dependencies
-pip install -e ".[dev]"
-```
+The asset price $S_t$ evolves according to a Geometric Brownian Motion (GBM) augmented with Poisson jumps and a regime-dependent drift:
 
-## Quick Start
+$$
+\frac{dS_t}{S_t} = \mu(L_t, P_t) dt + \sigma(P_t) dW_t + J dN_t
+$$
 
-```python
-from monte_carlo_finance import (
-    MonteCarloSimulation,
-    SimulationConfig,
-    ShockwaveEvent,
-    ShockType,
-)
+Where:
+- $\mu(L_t, P_t)$: Drift term, modulated by Global Liquidity $L_t$ and Panic Level $P_t$.
+- $\sigma(P_t)$: Volatility, amplified by Panic $P_t$ (Regime Switching).
+- $dW_t$: Standard Wiener process (Brownian motion).
+- $dN_t$: Poisson process with intensity $\lambda$, representing discrete shock events.
+- $J$: Jump size distribution (typically $\mathcal{N}(\mu_J, \sigma_J)$).
 
-# Create a basic simulation with default parameters
-sim = MonteCarloSimulation()
-results = sim.run()
+### 2. Global Liquidity Model (Ornstein-Uhlenbeck)
 
-# Access results
-print(f"Average final market value: {results.market_paths[:, -1].mean():.2f}")
-print(f"Default rate: {results.statistics['default_rate']['rate']:.2%}")
-```
+Liquidity $L_t$ acts as a mean-reverting force ("The Tide") that influences asset correlations and drift:
 
-## Configuration
+$$
+dL_t = \theta (\bar{L} - L_t) dt + \sigma_L dW_t^L
+$$
 
-The simulation is highly configurable through the `SimulationConfig` class:
+Where:
+- $\theta$: Speed of mean reversion.
+- $\bar{L}$: Long-term liquidity equilibrium.
+- $\sigma_L$: Volatility of central bank interventions.
 
-```python
-from monte_carlo_finance import SimulationConfig
+### 3. Consumer Credit & The "Hollow Middle" (Ising Model)
 
-config = SimulationConfig(
-    num_simulations=1000,      # Number of Monte Carlo paths
-    num_steps=252,             # Time steps (252 = daily for 1 year)
-    time_horizon=1.0,          # Time horizon in years
-    random_seed=42,            # For reproducibility
-)
+Consumer default probability is modeled as a phase transition using an Ising Model framework, capturing the non-linear nature of social contagion and financial stress.
 
-# Market configuration
-config.market.initial_value = 100.0
-config.market.drift = 0.05           # 5% expected annual return
-config.market.volatility = 0.20      # 20% annual volatility
-config.market.jump_intensity = 0.1   # Average 0.1 jumps per year
-config.market.jump_mean = -0.05      # Average jump is -5%
+The default probability $P(\text{Default})$ is a function of the "Energy" state $E$ of the consumer balance sheet:
 
-# Bond configuration
-config.bond.face_value = 1000.0
-config.bond.coupon_rate = 0.05       # 5% coupon
-config.bond.maturity_years = 10.0
-config.bond.initial_yield = 0.05     # 5% yield
-config.bond.credit_spread = 0.02     # 2% credit spread
-config.bond.recovery_rate = 0.40     # 40% recovery on default
+$$
+P(\text{Default}) \propto \frac{1}{1 + e^{-\beta (H + J \sum s_i)}}
+$$
 
-# Shockwave configuration
-config.shockwave.base_probability = 0.01   # 1% base shock probability
-config.shockwave.yield_impact = 0.02       # 2% yield increase on shock
-config.shockwave.market_impact = 0.10      # 10% market drop on shock
-config.shockwave.selloff_threshold = 0.05  # Trigger selloff at 5% yield increase
-config.shockwave.selloff_intensity = 0.20  # Sell 20% of position
+Where:
+- $H$: External field (Macroeconomic stress: Unemployment, Inflation).
+- $J$: Coupling constant (Social contagion / Herding behavior).
+- $\beta$: Inverse "temperature" (Market volatility).
 
-# Panic configuration
-config.panic.panic_sensitivity = 0.5       # Sensitivity to adverse events
-config.panic.volatility_multiplier = 2.0   # Volatility doubles at max panic
-config.panic.drift_impact = -0.10          # -10% drift at max panic
-config.panic.herd_behavior_factor = 0.3    # Herding strength
+This allows the model to simulate spontaneous symmetry breaking—where a stable consumer base suddenly cascades into default.
 
-sim = MonteCarloSimulation(config)
-results = sim.run()
-```
+### 4. Bond Yields (Vasicek Model)
 
-## Shockwave Events
+Interest rates $r_t$ follow a mean-reverting stochastic process:
 
-Simulate cascade effects where one event triggers a chain reaction:
+$$
+dr_t = a(b - r_t) dt + \sigma_r dW_t^r
+$$
 
-```python
-from monte_carlo_finance import ShockwaveEvent, ShockType
+Where:
+- $a$: Speed of reversion.
+- $b$: Long-term mean rate.
+- $\sigma_r$: Volatility of rates.
 
-# Create a default event (e.g., building loan default)
-event = ShockwaveEvent(
-    shock_type=ShockType.DEFAULT,
-    timestamp=50,               # Occurs at step 50
-    yield_impact=0.03,          # 3% yield increase
-    market_impact=0.15,         # 15% market drop
-    duration=10,                # Lasts 10 time steps
-    propagation_factor=0.7,     # 70% propagation to connected assets
-    name="Commercial Building Default"
-)
+### 5. Idiosyncratic Risk: One Market Plaza (PGRE)
 
-# Run simulation with the event
-results = sim.run_scenario([(50, event)])
-```
+Specific assets like One Market Plaza are modeled with discrete event triggers and stochastic cash flows:
 
-## Stress Testing
+- **Cash Burn**: Modeled as a stochastic process with high volatility ($\sigma_{burn} \approx 40\%$) to capture TI/LC cost uncertainty.
+- **Net Cash Flow (NCF)**: Evolves with mean reversion towards a stress-dependent target (Servicer vs. S&P Scenarios).
+- **Triggers**:
+  - **Feb 6, 2026**: Extension Hurdle (Liquidity Test).
+  - **Feb 5, 2027**: Hard Maturity / Forbearance Test (Debt Yield $\ge 8.5\%$).
 
-Run multiple scenarios to assess portfolio resilience:
-
-```python
-scenarios = [
-    {
-        "name": "Normal Market",
-        "events": [],
-    },
-    {
-        "name": "Single Default",
-        "events": [(100, ShockwaveEvent(
-            shock_type=ShockType.DEFAULT,
-            timestamp=100,
-            yield_impact=0.03,
-            market_impact=0.15,
-            duration=10,
-        ))],
-    },
-    {
-        "name": "Market Crash",
-        "events": [(100, ShockwaveEvent(
-            shock_type=ShockType.MARKET_CRASH,
-            timestamp=100,
-            yield_impact=0.05,
-            market_impact=0.25,
-            duration=20,
-        ))],
-        "config_overrides": {
-            "panic.base_panic_level": 0.3,
-        },
-    },
-]
-
-results = sim.stress_test(scenarios)
-
-for result in results:
-    print(f"Scenario: {result.statistics['scenario_name']}")
-    print(f"  Final market value: {result.market_paths[:, -1].mean():.2f}")
-    print(f"  Default rate: {result.statistics['default_rate']['rate']:.2%}")
-```
-
-## Panic Model
-
-The panic model captures psychological aspects of market behavior:
-
-```python
-from monte_carlo_finance.triggers.panic import PanicModel, PanicConfig
-
-config = PanicConfig(
-    base_panic_level=0.0,          # Starting panic level
-    panic_sensitivity=0.5,         # How quickly panic rises
-    panic_decay=0.1,               # How quickly panic subsides
-    max_panic_level=1.0,           # Maximum panic cap
-    volatility_multiplier=2.0,     # 2x volatility at max panic
-    drift_impact=-0.10,            # -10% drift at max panic
-    correlation_boost=0.5,         # +0.5 correlation at max panic
-    herd_behavior_factor=0.3,      # Herding amplifies panic
-)
-
-panic_model = PanicModel(config)
-
-# Trigger a panic event
-state = panic_model.trigger_panic_event("Bank Run", intensity=0.7)
-print(f"Panic level: {state.level:.2f}")
-print(f"Volatility multiplier: {state.volatility_multiplier:.2f}")
-```
-
-## Custom Triggers
-
-Add custom trigger logic for specific scenarios:
-
-```python
-def custom_trigger(state):
-    """Trigger event when market drops below threshold."""
-    if state["market_value"] < 80:  # 20% drop from 100
-        return ShockwaveEvent(
-            shock_type=ShockType.CUSTOM,
-            timestamp=state["step"],
-            yield_impact=0.02,
-            market_impact=0.05,
-            duration=5,
-            name="Custom threshold trigger"
-        )
-    return None
-
-sim._shockwave_trigger.register_custom_trigger(custom_trigger)
-```
-
-## Results Analysis
-
-```python
-# Get percentile paths for visualization
-percentiles = results.get_percentile_paths([5, 25, 50, 75, 95])
-
-# Access detailed statistics
-print(f"Market return statistics:")
-print(f"  Mean: {results.statistics['market_returns']['mean']:.4f}")
-print(f"  Std: {results.statistics['market_returns']['std']:.4f}")
-print(f"  VaR (95%): {results.statistics['market_returns']['var']:.4f}")
-print(f"  CVaR: {results.statistics['market_returns']['cvar']:.4f}")
-```
-
-## Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=monte_carlo_finance
-
-# Run specific test file
-pytest tests/test_simulation.py -v
-```
-
-## Project Structure
+## Directory Structure
 
 ```
 MonteCarloFinance/
-├── monte_carlo_finance/
-│   ├── __init__.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py         # Configuration classes
-│   │   └── simulation.py     # Main simulation engine
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── market.py         # Market value model (GBM + jumps)
-│   │   └── bond.py           # Bond pricing model (Vasicek)
-│   ├── triggers/
-│   │   ├── __init__.py
-│   │   ├── shockwave.py      # Shockwave event system
-│   │   └── panic.py          # Panic modeling
-│   └── utils/
-│       ├── __init__.py
-│       ├── random.py         # Random number generation
-│       └── statistics.py     # Statistical utilities
-├── tests/
-│   ├── test_config.py
-│   ├── test_market.py
-│   ├── test_bond.py
-│   ├── test_shockwave.py
-│   ├── test_panic.py
-│   └── test_simulation.py
-├── pyproject.toml
-├── requirements.txt
-└── README.md
+├── data/                   # Raw financial data (CSV, PDF, HTML)
+├── examples/               # Simulation runners and diagnostic scripts
+├── graphs/                 # Generated simulation plots (PNG)
+├── logs/                   # Execution logs
+├── monte_carlo_finance/    # Core library package
+│   ├── core/               # Orchestrator and Configuration
+│   ├── models/             # Mathematical models (Market, Bond, Consumer, PGRE)
+│   ├── triggers/           # Event triggers (Panic, Shockwaves)
+│   └── utils/              # Math and statistical utilities
+└── tests/                  # Unit tests
 ```
+
+## Usage
+
+### Installation
+
+```bash
+pip install -r requirements.txt
+```
+
+### Running a Simulation
+
+To run the multi-index simulation (Russell 3000, S&P 500, Dow, TSX) with the latest stochastic models:
+
+```bash
+python examples/multi_index_simulation.py
+```
+
+Results will be saved to the `graphs/` directory, and execution details will be logged to `logs/`.
+
+## Configuration
+
+All simulation parameters are centralized in `monte_carlo_finance/core/config.py`. Key parameters include:
+
+- `SimulationConfig`: Time horizon, steps, seed.
+- `MarketConfig`: Drift, volatility, jump intensity, Ising coupling.
+- `ConsumerConfig`: Wage lag, asset inflation weight, scarcity tunneling.
+- `PGREConfig`: Loan balance, cash burn rate, covenant thresholds.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Proprietary and Confidential.

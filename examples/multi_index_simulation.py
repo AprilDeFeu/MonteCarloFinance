@@ -15,7 +15,7 @@ import os
 import sys
 import json
 import logging
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 
 import numpy as np
 import matplotlib
@@ -129,8 +129,7 @@ def _plot_with_bands(ax, x_axis, bands, color, title, ylabel, subset_paths=None,
             ax.axvline(x=event['date'], color=event['color'], linestyle=event['style'], 
                       alpha=0.7, linewidth=1.5, label=event['label'] if 'label' not in [l.get_label() for l in ax.get_lines()] else "")
             # Add text label near top
-            ylim = ax.get_ylim()
-            # ax.text(event['date'], ylim[1], event['label'], rotation=90, verticalalignment='top', fontsize=8)
+            # Maturity marker text removed to avoid clutter
 
     ax.set_title(title, fontsize=10, fontweight='bold')
     ax.set_ylabel(ylabel, fontsize=9)

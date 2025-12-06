@@ -1,4 +1,3 @@
-import pytest
 from monte_carlo_finance.core.simulation import MonteCarloSimulation
 from monte_carlo_finance.core.config import SimulationConfig, ConsumerConfig, ShockwaveConfig
 from monte_carlo_finance.triggers.shockwave import ShockType
@@ -19,9 +18,10 @@ def test_consumer_cliff_trigger():
         asset_inflation_weight=0.0
     )
     
-    # Ensure shockwave is enabled (it is by default if passed to simulation)
-    # The threshold is hardcoded to 0.05 in the trigger logic currently
-    shock_config = ShockwaveConfig()
+    # Configure shockwave with explicit consumer default threshold
+    shock_config = ShockwaveConfig(
+        consumer_default_threshold=0.05  # Explicitly set threshold
+    )
     
     config = SimulationConfig(
         num_simulations=1, # Single run for deterministic check
