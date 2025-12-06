@@ -1,4 +1,46 @@
 
 
-#Ignore vscode AI rules
-.github\instructions\codacy.instructions.md
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AI / Instructions
+.github/copilot-instructions.md
+.github/instructions/
+.aitk/
+*.instructions.md
+
+# Logs
+logs/
+*.log
+
+# Results / Graphs
+graphs/
+simulation_results_*.png
+*.png
+*.csv
+!data/**/*.csv  # Keep data CSVs
+artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
+

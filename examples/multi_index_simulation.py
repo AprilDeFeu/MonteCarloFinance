@@ -344,7 +344,9 @@ def run_multi_index_simulation():
         
         # Save
         safe_name = index_name.replace(" ", "_").replace("/", "_")
-        output_path = os.path.join(os.path.dirname(__file__), f"simulation_results_{safe_name}.png")
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "graphs")
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, f"simulation_results_{safe_name}.png")
         plt.savefig(output_path, dpi=150)
         logger.info(f"Saved plot to {output_path}")
         print(f"Saved plot to {output_path}")
